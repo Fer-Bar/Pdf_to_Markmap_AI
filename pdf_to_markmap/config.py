@@ -1,16 +1,11 @@
-from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from django.conf import settings
 
 
 class Settings(BaseSettings):
     GOOGLE_API_KEY: str
     DEBUG: bool = True
+    SECRET_KEY: str
 
-    model_config = SettingsConfigDict(env_file="../.env")
+    model_config = SettingsConfigDict(env_file=settings.BASE_DIR / ".env")
 
-
-try:
-    settings = Settings()
-except ValidationError as e:
-    print("Error en la configuración:", e)
-    settings = None
