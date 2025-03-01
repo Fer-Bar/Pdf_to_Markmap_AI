@@ -1,4 +1,5 @@
 from django import forms
+from chat_app.models import ChatBotResponse
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -21,7 +22,12 @@ class MultipleFileField(forms.FileField):
 
 class PDFUploadForm(forms.Form):
     title = forms.CharField(label="Title", max_length=100)
-    pdfs = MultipleFileField(label="PDFs", help_text="Select multiple PDF files to upload.")
+    pdfs = MultipleFileField(label="PDFs", help_text="Sube uno o más archivos PDF.")
+    response_style = forms.ChoiceField(
+        choices=ChatBotResponse.RESPONSE_STYLES,
+        initial='NORMAL',
+        label='Estilo de respuesta'
+    )
 
     def clean_pdfs(self):
         files = self.files.getlist('pdfs')

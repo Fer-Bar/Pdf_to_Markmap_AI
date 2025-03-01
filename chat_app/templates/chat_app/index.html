@@ -2,14 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <title>Chat Responses</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .delete-btn {
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      color: red;
+    }
+  </style>
 </head>
 <body>
-<p>Subir un archivo de texto para procesar</p>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Subir y procesar</button>
-</form>
+  <h1>Mapas Mentales</h1>
+  <a href="{% url 'chat_app:upload_pdfs' %}">Crear nuevo Mapa Mental</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Response File</th>
+        <th>Response Style</th>
+        <th>Created At</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for response in chat_responses %}
+      <tr>
+        <td>{{ response.title }}</td>
+        <td><a href="{{ response.response_file }}" target="_blank">Mapa Mental</a></td>
+        <td>{{ response.response_style }}</td>
+        <td>{{ response.created_at }}</td>
+        <td><i class="fas fa-trash"></i></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </body>
 </html>
