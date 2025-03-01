@@ -111,7 +111,8 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 LOGIN_URL = "/admin/login/"
 
 cred = credentials.Certificate(BASE_DIR / "g-market-5f76f-firebase-adminsdk-issqk-5a5cd266d9.json")
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {"storageBucket": "g-market-5f76f.appspot.com"})
