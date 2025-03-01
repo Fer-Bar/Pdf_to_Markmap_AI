@@ -57,3 +57,12 @@ class GeminiChatBot:
             ),
         )
         return response.text
+
+
+custom_instructions: dict[str, str] = {
+    "prompt": "Analiza el texto proporcionado y genera un mapa mental en formato Markmap.",
+    "system_instruction": """Eres un asistente que convierte contenido de PDF en mapas mentales.
+         Analiza el texto proporcionado y genera un mapa mental en formato Markmap. 
+         No incluyas saludos, despedidas ni explicaciones adicionales; proporciona únicamente el contenido en Markmap.
+         """,
+}
