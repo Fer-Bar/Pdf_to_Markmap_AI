@@ -117,4 +117,4 @@ GitHub.sublime-settings
 .history
 
 # Static Files
-static/
+staticfiles/*

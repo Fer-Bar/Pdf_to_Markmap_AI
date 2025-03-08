@@ -1,0 +1,83 @@
+header .navbar-brand {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 1.6em;
+  font-weight: 500;
+  font-family: "Poppins", serif;
+  color: #a155ff !important;
+}
+
+header .navbar-brand span {
+  color: #a155ff !important;
+}
+
+header .navbar {
+  padding-top: 0;
+  padding-bottom: 0;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1400px) {
+  header .navbar {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+header .navbar .nav-link {
+  padding: 1.7rem 1rem;
+  outline: none !important;
+  color: #ffffff;
+}
+
+@media (max-width: 1400px) {
+  header .navbar .nav-link {
+    padding: 0.5rem 0;
+  }
+}
+
+header .navbar .nav-link.active {
+  color: #a155ff !important;
+}
+
+header .navbar .dropdown-menu {
+  font-size: 14px;
+  border-radius: 10px;
+  border: none;
+  -webkit-box-shadow: 0 2px 30px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 30px 0 rgba(0, 0, 0, 0.2);
+  min-width: 13em;
+  margin-top: -10px;
+}
+
+header .navbar .dropdown-menu::before {
+  bottom: 100px;
+  left: 10%;
+  border: solid transparent !important;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-bottom-color: #fff;
+  border-width: 10px;
+}
+
+header .navbar .dropdown-menu .dropdown-item.active:hover {
+  background: #a155ff;
+  color: #fff;
+}
+
+header .navbar .dropdown-menu .dropdown-item.active {
+  background: #a155ff;
+  color: #fff;
+}
+
+#logout-form {
+  display: inline;
+}
+#logout-form button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}

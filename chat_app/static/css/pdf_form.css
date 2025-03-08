@@ -1,0 +1,179 @@
+.upload-container {
+      background-color: #343a40;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      padding: 2.5rem;
+      margin: 50px 0;
+    }
+
+    .upload-title {
+      font-weight: 600;
+      color: #f8f9fa;
+      margin-bottom: 1.5rem;
+      position: relative;
+      padding-bottom: 15px;
+    }
+
+    .upload-title:after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      width: 60px;
+      background: #a155ff;
+      border-radius: 2px;
+    }
+
+    .file-list {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #2b3035;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .file-item {
+      background: #343a40;
+      border-radius: 10px;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .file-name {
+      font-weight: 500;
+      color: #e9ecef;
+      margin-right: 10px;
+    }
+
+    .custom-file-upload {
+      display: inline-block;
+      padding: 16px 20px;
+      background: #2b3035;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+      border: 2px dashed #495057;
+      text-align: center;
+      color: #adb5bd;
+    }
+
+    .custom-file-upload:hover {
+      background: #343a40;
+      border-color: #6c757d;
+    }
+
+    .form-select, .form-control {
+      height: 50px;
+      border-radius: 12px !important;
+      font-size: 15px;
+      border: 1px solid #495057;
+      background-color: #343a40 !important;
+      color: #e9ecef !important;
+    }
+
+    .input-group-text {
+      border-radius: 12px 0 0 12px !important;
+      background-color: #2b3035;
+      border-color: #495057;
+    }
+
+    .input-group .form-control, .input-group .form-select {
+      border-radius: 0 12px 12px 0 !important;
+    }
+
+    .btn-primary {
+      background: #a155ff;
+      border: none;
+      padding: 14px 30px;
+      font-weight: 500;
+      border-radius: 12px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      background: #8c42e6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-outline-danger {
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 14px;
+      color: #ff6b6b;
+      border-color: #ff6b6b;
+    }
+
+    .btn-outline-danger:hover {
+      background-color: #ff6b6b;
+      color: #fff;
+    }
+
+    .loader {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: rgba(33, 37, 41, 0.9);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .spinner {
+      width: 70px;
+      height: 70px;
+      border: 8px solid #343a40;
+      border-top: 8px solid #a155ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .text-muted {
+      color: #adb5bd !important;
+    }
+
+    .invalid-feedback {
+      display: none;
+      color: #ff6b6b;
+      margin-top: 0.5rem;
+    }
+
+    .file-error {
+      border-color: #ff6b6b !important;
+    }
+
+    .pdf-only-message {
+      display: block;
+      font-size: 12px;
+      color: #adb5bd;
+      margin-top: 8px;
+    }
+
+    /* Override select dropdown styles */
+    select option {
+      background-color: #343a40;
+      color: #e9ecef;
+    }
+   /* Focus states */
+    .form-control:focus, .form-select:focus {
+      background-color: #343a40 !important;
+      color: #e9ecef !important;
+      border-color: #a155ff !important;
+      box-shadow: 0 0 0 0.25rem rgba(161, 85, 255, 0.25) !important;
+    }
