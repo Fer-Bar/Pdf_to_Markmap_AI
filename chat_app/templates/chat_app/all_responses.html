@@ -1,0 +1,427 @@
+{% extends "chat_app/base.html" %}
+{% load static %}
+
+{% block title %}
+    Mapas Mentales
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href={% static "css/all_responses.css" %}>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title mb-0">Mis Mapas Mentales</h2>
+        <a href="{% url 'chat_app:upload_pdfs' %}" class="btn btn-view">
+          <i class="bi bi-plus-lg me-2"></i>Nuevo Mapa
+        </a>
+      </div>
+
+      <p class="text-muted mb-4">Visualiza y administra todos tus mapas mentales generados.</p>
+
+      <!-- Filters -->
+      <div class="filters">
+        <div class="row g-3">
+          <div class="col-lg-4">
+            <div class="input-group">
+              <span class="input-group-text bg-transparent border-end-0">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" class="form-control border-start-0" placeholder="Buscar por título..." id="searchInput">
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <select class="form-select" id="styleFilter">
+              <option value="">Todos los estilos</option>
+              {% for code, label in style_responses %}
+                <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-lg-3">
+            <select class="form-select" id="dateFilter">
+              <option value="">Todas las fechas</option>
+              <option value="today">Hoy</option>
+              <option value="week">Esta semana</option>
+              <option value="month">Este mes</option>
+            </select>
+          </div>
+          <div class="col-lg-2">
+            <button class="btn btn-outline-secondary w-100" id="resetFilters">
+              <i class="bi bi-arrow-counterclockwise me-2"></i>Resetear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maps Grid -->
+      <div class="row g-4" id="mapsContainer">
+        {% for response in chat_responses %}
+        <div class="col-lg-4 col-md-6 map-card" data-title="{{ response.title|lower }}" data-style="{{ response.response_style|lower }}" data-date="{{ response.created_at|date:'Y-m-d' }}">
+          <div class="mind-map-card">
+            <div class="card-body">
+              <span class="map-style-badge">
+                <i class="bi bi-diagram-3 me-1"></i>{{ response.get_response_style_display }}
+              </span>
+              <h3 class="map-title">{{ response.title }}</h3>
+              <div class="map-preview">
+                <img src="https://uploads.dailydot.com/2024/04/megamind-no-bitches-meme-.jpg?auto=compress&fm=pjpg" alt="Vista previa del mapa mental">
+                <div class="overlay">
+                  <a href="{{ response.response_file }}" target="_blank" class="btn btn-view">
+                    <i class="bi bi-eye me-1"></i> Ver
+                  </a>
+                </div>
+              </div>
+              <div class="map-date">
+                <i class="bi bi-calendar3 me-2"></i> {{ response.created_at|date:"d M Y" }}
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="d-flex justify-content-between">
+                <a href="{{ response.response_file }}" class="btn btn-view" download>
+                  <i class="bi bi-download me-1"></i> Descargar
+                </a>
+                <a href="{% url 'chat_app:delete_response' response.id %}" class="btn btn-outline-secondary delete-btn" data-id="{{ response.id }}" data-title="{{ response.title }}">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="empty-state" id="emptyStateDefault">
+            <i class="bi bi-diagram-3 empty-icon"></i>
+            <h3>No hay mapas mentales</h3>
+            <p class="text-muted">Aún no has generado ningún mapa mental.</p>
+            <a href="{% url 'chat_app:upload_pdfs' %}" class="btn btn-view mt-3">
+              <i class="bi bi-plus-lg me-2"></i>Crear mi primer mapa
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Empty State (para búsquedas sin resultados) -->
+      <div class="empty-state d-none" id="emptyState">
+        <i class="bi bi-diagram-3 empty-icon"></i>
+        <h3>No hay mapas mentales</h3>
+        <p class="text-muted">No hay resultados para tu búsqueda.</p>
+        <button class="btn btn-view mt-3" id="clearSearch">
+          <i class="bi bi-arrow-counterclockwise me-2"></i>Limpiar filtros
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <div id="paginationContainer" class="mt-4">
+        <nav aria-label="Navegación de páginas">
+          <ul class="pagination justify-content-center">
+            <li class="page-item disabled" id="prevPage">
+              <a class="page-link" href="#" aria-label="Anterior">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#" data-page="1">1</a></li>
+            <!-- Páginas adicionales se generarán dinámicamente mediante JavaScript -->
+            <li class="page-item disabled" id="nextPage">
+              <a class="page-link" href="#" aria-label="Siguiente">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar el mapa mental "<span id="mapTitleToDelete"></span>"? Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <a href="#" class="btn btn-danger" id="confirmDelete">Eliminar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Variables
+      const searchInput = document.getElementById('searchInput');
+      const styleFilter = document.getElementById('styleFilter');
+      const dateFilter = document.getElementById('dateFilter');
+      const resetFilters = document.getElementById('resetFilters');
+      const clearSearch = document.getElementById('clearSearch');
+      const mapsContainer = document.getElementById('mapsContainer');
+      const emptyState = document.getElementById('emptyState');
+      const paginationContainer = document.getElementById('paginationContainer');
+      const mapCards = document.querySelectorAll('.map-card');
+      const itemsPerPage = 6; // Número de mapas por página
+      let currentPage = 1;
+      let totalPages = Math.ceil(mapCards.length / itemsPerPage);
+
+      // Inicializar paginación
+      function initPagination() {
+        // Oculta la paginación si no hay suficientes elementos
+        if (mapCards.length <= itemsPerPage) {
+          paginationContainer.classList.add('d-none');
+          return;
+        } else {
+          paginationContainer.classList.remove('d-none');
+        }
+
+        // Generar páginas dinámicamente
+        const paginationList = document.querySelector('.pagination');
+        const nextPageItem = document.getElementById('nextPage');
+
+        // Eliminar páginas existentes excepto la primera y los botones prev/next
+        const pageItems = document.querySelectorAll('.pagination .page-item:not(:first-child):not(:last-child)');
+        pageItems.forEach(item => {
+          if (!item.classList.contains('active')) {
+            item.remove();
+          }
+        });
+
+        // Añadir las páginas necesarias
+        for (let i = 2; i <= totalPages; i++) {
+          const pageItem = document.createElement('li');
+          pageItem.classList.add('page-item');
+
+          const pageLink = document.createElement('a');
+          pageLink.classList.add('page-link');
+          pageLink.href = '#';
+          pageLink.textContent = i;
+          pageLink.setAttribute('data-page', i);
+
+          pageLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            changePage(i);
+          });
+
+          pageItem.appendChild(pageLink);
+          paginationList.insertBefore(pageItem, nextPageItem);
+        }
+
+        // Actualizar botones prev/next
+        if (totalPages > 1) {
+          document.getElementById('nextPage').classList.remove('disabled');
+        } else {
+          document.getElementById('nextPage').classList.add('disabled');
+        }
+      }
+
+      // Cambiar página
+      function changePage(pageNum) {
+        currentPage = pageNum;
+        updatePageDisplay();
+
+        // Actualizar estado activo en la paginación
+        const pageLinks = document.querySelectorAll('.pagination .page-link');
+        pageLinks.forEach(link => {
+          const page = parseInt(link.getAttribute('data-page'));
+          if (page === currentPage) {
+            link.parentElement.classList.add('active');
+          } else {
+            link.parentElement.classList.remove('active');
+          }
+        });
+
+        // Actualizar botones prev/next
+        if (currentPage === 1) {
+          document.getElementById('prevPage').classList.add('disabled');
+        } else {
+          document.getElementById('prevPage').classList.remove('disabled');
+        }
+
+        if (currentPage === totalPages) {
+          document.getElementById('nextPage').classList.add('disabled');
+        } else {
+          document.getElementById('nextPage').classList.remove('disabled');
+        }
+      }
+
+      // Actualizar visualización de mapas según página actual
+      function updatePageDisplay() {
+        const visibleCards = document.querySelectorAll('.map-card:not(.filtered)');
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
+        visibleCards.forEach((card, index) => {
+          if (index >= startIndex && index < endIndex) {
+            card.classList.remove('d-none');
+          } else {
+            card.classList.add('d-none');
+          }
+        });
+      }
+
+      // Filtrar mapas
+      function filterMaps() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const styleValue = styleFilter.value.toLowerCase();
+        const dateValue = dateFilter.value;
+        let visibleCount = 0;
+        mapCards.forEach(card => {
+          const title = card.getAttribute('data-title').toLowerCase(); // Asegurarse de que está en minúsculas
+          const style = card.getAttribute('data-style').toLowerCase(); // Asegurarse de que está en minúsculas
+          const dateStr = card.getAttribute('data-date');
+          let isVisible = true;
+
+          // Filtro de búsqueda
+          if (searchTerm && !title.includes(searchTerm)) {
+            isVisible = false;
+          }
+
+          // Filtro de estilo
+          if (styleValue && style !== styleValue) {
+            isVisible = false;
+          }
+
+          // Filtro de fecha
+          if (dateValue) {
+            const mapDate = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (dateValue === 'today') {
+              const todayStr = today.toISOString().split('T')[0];
+              if (dateStr !== todayStr) {
+                isVisible = false;
+              }
+            } else if (dateValue === 'week') {
+              const weekAgo = new Date();
+              weekAgo.setDate(today.getDate() - 7);
+              if (mapDate < weekAgo) {
+                isVisible = false;
+              }
+            } else if (dateValue === 'month') {
+              const monthAgo = new Date();
+              monthAgo.setMonth(today.getMonth() - 1);
+              if (mapDate < monthAgo) {
+                isVisible = false;
+              }
+            }
+          }
+
+          // Aplicar visibilidad
+          if (isVisible) {
+            card.classList.remove('filtered');
+            visibleCount++;
+          } else {
+            card.classList.add('filtered');
+            card.classList.add('d-none');  // Añadir d-none cuando esté filtrado
+          }
+        });
+
+        // Mostrar estado vacío si no hay resultados
+        if (visibleCount === 0) {
+          emptyState.classList.remove('d-none');
+          const defaultEmptyState = document.getElementById('emptyStateDefault');
+          if (defaultEmptyState) {
+            defaultEmptyState.classList.add('d-none');
+          }
+        } else {
+          emptyState.classList.add('d-none');
+          document.querySelectorAll('.map-card:not(.filtered)').forEach(card => {
+            card.classList.remove('d-none');  // Asegurar que las tarjetas no filtradas sean visibles
+          });
+        }
+
+        // Recalcular número total de páginas y actualizar paginación
+        totalPages = Math.ceil(visibleCount / itemsPerPage);
+        if (totalPages === 0) totalPages = 1; // Al menos una página aunque esté vacía
+
+        // Regresar a la primera página
+        currentPage = 1;
+
+        // Reinicializar la paginación
+        initPagination();
+
+        // Actualizar visualización
+        updatePageDisplay();
+      }
+
+      // Event Listeners
+      // Eventos de filtro
+      searchInput.addEventListener('input', filterMaps);
+      styleFilter.addEventListener('change', filterMaps);
+      dateFilter.addEventListener('change', filterMaps);
+
+      // Resetear filtros
+      resetFilters.addEventListener('click', function() {
+        searchInput.value = '';
+        styleFilter.value = '';
+        dateFilter.value = '';
+        filterMaps();
+      });
+
+      if (clearSearch) {
+        clearSearch.addEventListener('click', function() {
+          resetFilters.click();
+        });
+      }
+
+      // Navegación de paginación - botones prev/next
+      document.getElementById('prevPage').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (currentPage > 1) {
+          changePage(currentPage - 1);
+        }
+      });
+
+      document.getElementById('nextPage').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          changePage(currentPage + 1);
+        }
+      });
+
+      // Primera página (que ya está en el HTML)
+      document.querySelector('.pagination .page-link[data-page="1"]').addEventListener('click', function(e) {
+        e.preventDefault();
+        changePage(1);
+      });
+
+      // Delete functionality
+      const deleteButtons = document.querySelectorAll('.delete-btn');
+      const deleteModalEl = document.getElementById('deleteModal');
+      const deleteModal = new bootstrap.Modal(deleteModalEl);
+      const confirmDelete = document.getElementById('confirmDelete');
+      const mapTitleToDelete = document.getElementById('mapTitleToDelete');
+
+      deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          const mapId = this.getAttribute('data-id');
+          const mapTitle = this.getAttribute('data-title');
+
+          // Set the delete URL
+          confirmDelete.href = this.getAttribute('href');
+
+          // Set the map title in the confirmation modal
+          mapTitleToDelete.textContent = mapTitle;
+
+          // Show the modal
+          deleteModal.show();
+        });
+      });
+
+      // Inicializar
+      initPagination();
+      updatePageDisplay();
+    });
+  </script>
+{% endblock %}

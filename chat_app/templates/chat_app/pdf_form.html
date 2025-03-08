@@ -1,16 +1,291 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
-<p>Subir un archivo de texto para procesar</p>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Subir y procesar</button>
-</form>
-<p>{{ file_uploaded_url }}</p>
-</body>
-</html>
+{% extends "chat_app/base.html" %}
+{% load static %}
+
+{% block title %}
+    Mapas Mentales
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href={% static "css/pdf_form.css" %}>
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="upload-container">
+          <h2 class="upload-title">Generar Mapa Mental</h2>
+          <p class="text-muted mb-4">Sube los documentos que deseas procesar para generar un mapa mental personalizado.</p>
+
+          <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+
+            <div class="mb-4">
+              <label for="id_title" class="form-label fw-medium">Título del Mapa Mental</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-type-h1"></i></span>
+                {{ form.title }}
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-medium">Archivos</label>
+              <div class="file-input-container">
+                <div class="custom-file-upload w-100 mb-2" id="file-label">
+                  <i class="bi bi-cloud-arrow-up fs-3 d-block mb-2"></i>
+                  <span>Arrastra tus archivos aquí o haz clic para seleccionar</span>
+                </div>
+                <div class="d-none">
+                  <input type="file" id="id_pdfs" name="pdfs" multiple accept=".pdf" />
+                </div>
+                <div class="pdf-only-message">
+                  <i class="bi bi-info-circle me-1"></i> Solo se permiten archivos PDF
+                </div>
+                <div class="invalid-feedback" id="file-feedback">
+                  Por favor, selecciona solo archivos PDF.
+                </div>
+              </div>
+
+              <div class="file-list mt-3" id="fileList">
+                <div class="text-center py-3 text-muted" id="noFilesMessage">
+                  <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                  No hay archivos seleccionados
+                </div>
+                <!-- Files will be listed here -->
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="id_response_style" class="form-label fw-medium">Estilo de Respuesta</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-palette"></i></span>
+                {{ form.response_style }}
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="bi bi-diagram-3 me-2"></i>Generar Mapa Mental
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="spinner mb-4"></div>
+    <h4 class="text-light">Procesando archivos...</h4>
+    <p class="text-muted">Esto puede tomar unos momentos</p>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileInput = document.querySelector('#id_pdfs');
+      const fileLabel = document.querySelector('#file-label');
+      const fileList = document.querySelector('#fileList');
+      const noFilesMessage = document.querySelector('#noFilesMessage');
+      const uploadForm = document.querySelector('#uploadForm');
+      const loader = document.querySelector('#loader');
+      const fileFeedback = document.querySelector('#file-feedback');
+      const submitBtn = document.querySelector('#submitBtn');
+
+      // Handle file selection
+      fileLabel.addEventListener('click', function() {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', function(e) {
+        validateAndUpdateFiles(this.files);
+      });
+
+      // Handle drag and drop
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        fileLabel.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        fileLabel.addEventListener(eventName, highlight, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        fileLabel.addEventListener(eventName, unhighlight, false);
+      });
+
+      function highlight() {
+        fileLabel.style.borderColor = '#a155ff';
+        fileLabel.style.background = '#32383e';
+      }
+
+      function unhighlight() {
+        fileLabel.style.borderColor = '#495057';
+        fileLabel.style.background = '#2b3035';
+      }
+
+      fileLabel.addEventListener('drop', handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const droppedFiles = dt.files;
+
+        validateAndUpdateFiles(droppedFiles, true);
+      }
+
+      function validateAndUpdateFiles(newFiles, isDropped = false) {
+        let allValid = true;
+        let invalidFiles = [];
+
+        // Check if all files are PDFs
+        for (let i = 0; i < newFiles.length; i++) {
+          const file = newFiles[i];
+          const fileExt = file.name.split('.').pop().toLowerCase();
+
+          if (fileExt !== 'pdf') {
+            allValid = false;
+            invalidFiles.push(file.name);
+          }
+        }
+
+        if (!allValid) {
+          // Show error
+          fileLabel.classList.add('file-error');
+          fileFeedback.style.display = 'block';
+          fileFeedback.textContent = `Solo se permiten archivos PDF. Archivos no válidos: ${invalidFiles.join(', ')}`;
+          return;
+        } else {
+          // Clear error state
+          fileLabel.classList.remove('file-error');
+          fileFeedback.style.display = 'none';
+        }
+
+        if (isDropped) {
+          // For dropped files, we need to merge with existing files
+          const dataTransfer = new DataTransfer();
+
+          // Add existing files
+          if (fileInput.files) {
+            Array.from(fileInput.files).forEach(file => {
+              dataTransfer.items.add(file);
+            });
+          }
+
+          // Add new files
+          Array.from(newFiles).forEach(file => {
+            dataTransfer.items.add(file);
+          });
+
+          fileInput.files = dataTransfer.files;
+        }
+
+        updateFileList();
+      }
+
+      function updateFileList() {
+        if (fileInput.files.length > 0) {
+          noFilesMessage.classList.add('d-none');
+
+          // Clear previous list
+          const existingItems = fileList.querySelectorAll('.file-item');
+          existingItems.forEach(item => item.remove());
+
+          // Add new files
+          Array.from(fileInput.files).forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.classList.add('file-item');
+            fileItem.innerHTML = `
+              <div>
+                <i class="bi bi-file-earmark-pdf me-2"></i>
+                <span class="file-name">${file.name}</span>
+                <small class="text-muted">(${formatFileSize(file.size)})</small>
+              </div>
+              <button type="button" class="btn btn-outline-danger btn-sm remove-file" data-index="${index}">
+                <i class="bi bi-x"></i>
+              </button>
+            `;
+            fileList.appendChild(fileItem);
+          });
+
+          // Re-attach event listeners for all remove buttons
+          attachRemoveListeners();
+        } else {
+          noFilesMessage.classList.remove('d-none');
+          const existingItems = fileList.querySelectorAll('.file-item');
+          existingItems.forEach(item => item.remove());
+        }
+      }
+
+      function attachRemoveListeners() {
+        // Remove old listeners first to prevent duplicates
+        const oldButtons = document.querySelectorAll('.remove-file');
+        oldButtons.forEach(btn => {
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+        });
+
+        // Attach fresh listeners
+        document.querySelectorAll('.remove-file').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            removeFileByIndex(index);
+          });
+        });
+      }
+
+      function removeFileByIndex(index) {
+        console.log("Removing file at index:", index);
+
+        const dt = new DataTransfer();
+        const files = fileInput.files;
+
+        for (let i = 0; i < files.length; i++) {
+          if (i !== index) {
+            dt.items.add(files[i]);
+          }
+        }
+
+        // Update the input with the new file list
+        fileInput.files = dt.files;
+
+        // Update the UI
+        updateFileList();
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+      }
+
+      // Show loader on form submit
+      uploadForm.addEventListener('submit', function(e) {
+        // Check if we have any files
+        if (fileInput.files.length === 0) {
+          e.preventDefault();
+          fileLabel.classList.add('file-error');
+          fileFeedback.style.display = 'block';
+          fileFeedback.textContent = 'Por favor, selecciona al menos un archivo PDF.';
+          return false;
+        }
+
+        // All good, show loader
+        loader.style.display = 'flex';
+      });
+
+      // Initialize the file list in case there were files pre-loaded by Django
+      if (fileInput.files && fileInput.files.length > 0) {
+        updateFileList();
+      }
+    });
+  </script>
+{% endblock %}
