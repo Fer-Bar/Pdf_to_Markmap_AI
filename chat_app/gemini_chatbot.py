@@ -1,13 +1,7 @@
-from functools import lru_cache
 import io
 from google import genai
 from google.genai import types
-from pdf_to_markmap import config
-
-
-@lru_cache
-def get_settings():
-    return config.Settings()
+from pdf_to_markmap.config import get_settings
 
 
 class GeminiChatBot:
