@@ -20,7 +20,7 @@ SECRET_KEY = settings.SECRET_KEY
 
 DEBUG = settings.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -123,4 +123,4 @@ LOGIN_URL = "/admin/login/"
 LOGOUT_REDIRECT_URL = "/"
 
 cred = credentials.Certificate(BASE_DIR / "g-market-5f76f-firebase-adminsdk-issqk-5a5cd266d9.json")
-firebase_admin.initialize_app(cred, {"storageBucket": "g-market-5f76f.appspot.com"})
+firebase_admin.initialize_app(cred, {"storageBucket": ""})
