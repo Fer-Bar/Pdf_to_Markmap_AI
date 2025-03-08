@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     FIREBASE_BUCKET_NAME: str
     FIREBASE_CREDENTIALS: str
-    DATABASE_URL: str
+    DATABASE_URL: str | None = None
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 
