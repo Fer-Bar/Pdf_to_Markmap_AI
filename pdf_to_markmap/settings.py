@@ -1,3 +1,4 @@
+import dj_database_url
 import firebase_admin
 from firebase_admin import credentials
 
@@ -32,7 +33,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
     "chat_app"
 ]
 
@@ -71,12 +71,23 @@ WSGI_APPLICATION = "pdf_to_markmap.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+def get_database_config(config):
+    if hasattr(config, 'DATABASE_URL') and config.DATABASE_URL:
+        return {
+            'default': dj_database_url.config(
+                default=config.DATABASE_URL,
+                conn_max_age=600
+            )
+        }
+    return {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+
+
+DATABASES = get_database_config(settings)
 
 
 # Password validation
