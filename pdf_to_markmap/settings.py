@@ -3,15 +3,22 @@ from firebase_admin import credentials
 
 from pathlib import Path
 
+from pdf_to_markmap.config import get_settings
+
+try:
+    settings = get_settings()
+except Exception as e:
+    print(f"Error getting settings: {e}")
+    settings = None
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 PROJECT_NAME = 'pdf_to_markmap'
 
-SECRET_KEY = "django-insecure-qpq__b5u@1082o0)lyurv)hu%2^hk_9_5*$=a^pfvrldbv8_vd"
+SECRET_KEY = settings.SECRET_KEY
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = settings.DEBUG
 
 ALLOWED_HOSTS = []
 
@@ -93,7 +100,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = "es-bos"
+LANGUAGE_CODE = "es-BO"
 
 TIME_ZONE = "America/La_Paz"
 
@@ -113,6 +120,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "/admin/login/"
+LOGOUT_REDIRECT_URL = "/"
 
 cred = credentials.Certificate(BASE_DIR / "g-market-5f76f-firebase-adminsdk-issqk-5a5cd266d9.json")
 firebase_admin.initialize_app(cred, {"storageBucket": "g-market-5f76f.appspot.com"})

@@ -1,5 +1,15 @@
+from functools import lru_cache
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from django.conf import settings
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+@lru_cache
+def get_settings():
+    return Settings()
 
 
 class Settings(BaseSettings):
@@ -7,5 +17,6 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     SECRET_KEY: str
 
-    model_config = SettingsConfigDict(env_file=settings.BASE_DIR / ".env")
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
+
 
