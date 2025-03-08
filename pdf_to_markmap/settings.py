@@ -125,5 +125,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/admin/login/"
 LOGOUT_REDIRECT_URL = "/"
 
-cred = credentials.Certificate(BASE_DIR / "g-market-5f76f-firebase-adminsdk-issqk-5a5cd266d9.json")
-firebase_admin.initialize_app(cred, {"storageBucket": ""})
+cred = credentials.Certificate(BASE_DIR / settings.FIREBASE_CREDENTIALS)
+firebase_admin.initialize_app(cred, {"storageBucket": settings.FIREBASE_BUCKET_NAME})
